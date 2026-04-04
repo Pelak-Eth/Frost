@@ -7,6 +7,9 @@
                 <i class="fa fa-area-chart" aria-hidden="true"></i>
                 Sales Report
                 <a href="/admin/store/report/inventory" class="btn btn-success btn-raised pull-right">Inventory Report</a>
+                <a href="/admin/store/report/sales/export?start={{ $filters['start'] }}&end={{ $filters['end'] }}&store={{ $filters['store'] }}&type=detailed" class="btn btn-info btn-raised pull-right" style="margin-right:10px;">
+                    <i class="fa fa-file-excel-o" aria-hidden="true"></i> Export to Excel
+                </a>
             </h2>
         </div>
         @include('backend.store.report.partials.sales-filters')

@@ -7,6 +7,9 @@
                 <i class="fa fa-area-chart" aria-hidden="true"></i>
                 Inventory Report
                 <a href="/admin/store/report/sales" class="btn btn-success btn-raised pull-right">Sales Report</a>
+                <a href="/admin/store/report/inventory/export?store={{ $store }}" class="btn btn-info btn-raised pull-right" style="margin-right:10px;">
+                    <i class="fa fa-file-excel-o" aria-hidden="true"></i> Export to Excel
+                </a>
             </h2>
 
         </div>

@@ -1,0 +1,24 @@
+/* ──────────────────────────────────────────────────────────────────────────
+ * Tailwind v4 entry — used by the Vue/Inertia pages (resources/views/app.blade.php).
+ *
+ * The legacy Blade master template (resources/views/master.blade.php) still
+ * loads resources/css/app.scss which keeps Bootstrap 5 + the legacy SCSS
+ * partials alive for the 42 unmigrated Blade pages. Don't merge the two —
+ * mixing Bootstrap and Tailwind in the same bundle is a recipe for cascade
+ * collisions.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+@import 'tailwindcss';
+
+/* FontAwesome — needed by the icons in AppLayout.vue and any future Vue
+ * pages that use <i class="fa ..."></i>. We pull plain CSS files (not the
+ * SCSS source) so this entry stays Tailwind-pure. */
+@import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
+@import '@fortawesome/fontawesome-free/css/solid.min.css';
+@import '@fortawesome/fontawesome-free/css/regular.min.css';
+
+/* Tell Tailwind v4 which files to scan for utility classes. v4 auto-detects
+ * most things via the Vite plugin, but adding @source makes the Vue + Blade
+ * directories explicit and prevents purging classes used in dynamic bindings. */
+@source "../js/**/*.{vue,js}";
+@source "../views/**/*.blade.php";

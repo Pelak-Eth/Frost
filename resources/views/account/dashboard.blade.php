@@ -73,26 +73,8 @@
 @endsection
 
 @push('scripts')
-    <script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
+    @vite('resources/js/quill.js')
     <script>
-        tinymce.init({
-            selector:'textarea',
-            theme: 'modern',
-            menubar: false,
-            statusbar: false,
-            plugins: [
-                'advlist autolink lists link image',
-                'media',
-                'emoticons textcolor colorpicker textpattern imagetools codesample toc'
-            ],
-            toolbar1: 'undo redo | insert | forecolor backcolor emoticons | bold italic | bullist numlist outdent indent | link image',
-            image_advtab: true,
-            content_css: [
-                '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
-                '//www.tinymce.com/css/codepen.min.css'
-            ]
-        });
-
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf_token"]').attr('content')
@@ -117,8 +99,7 @@
             $('#announcement-modal').modal('show');
         });
         $('#post-reply').on('click', function() {
-            tinyMCE.triggerSave();
-            var replyContent = $('textarea#reply').val();
+            var replyContent = $('#reply').val();
             $.ajax({
                 url: '/announcements/' + $('#announcement-id').val() + '/add-comment',
                 type: "POST",
@@ -129,7 +110,11 @@
             }).done(function( json ) {
                 if(json == 'success') {
                     $('#comments').append('<div class="well">' + replyContent + '</div>');
-                    tinyMCE.activeEditor.setContent('');
+                    var replyEditor = document.querySelector('[data-quill-target="reply"]');
+                    if (replyEditor && replyEditor.__quill) {
+                        replyEditor.__quill.setContents([]);
+                    }
+                    $('#reply').val('');
                 }
             });
         })

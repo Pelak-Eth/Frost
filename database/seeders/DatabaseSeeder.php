@@ -16,7 +16,14 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             UserTableSeeder::class,
-            SampleDataSeeder::class,
+            DemoUserSeeder::class,
+            DemoIngredientSeeder::class,
+            DemoRecipeSeeder::class,
+            DemoProductSeeder::class,
+            DemoDiscountSeeder::class,
+            DemoCustomerSeeder::class,
+            DemoShopOrderSeeder::class,
+            DemoShiftSeeder::class,
         ]);
 
         Model::reguard();

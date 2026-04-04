@@ -1,0 +1,156 @@
+name: frost
+recipe: laravel
+config:
+  webroot: public
+  php: '8.3'
+  composer_version: '2'
+  database: mysql:8.0
+  via: nginx
+  xdebug: false
+  # Pin node to 20 so the appserver can build Tailwind v4 / Vite 5 without
+  # falling back to a host-side `docker run node:20-alpine` workaround.
+  node: '20'
+
+# ─── Custom services ─────────────────────────────────────────────────────────
+services:
+  # nginx web service auto-created by the Laravel recipe (because `via: nginx`).
+  # Lando's URL scanner uses axios, which sends `Accept: application/json` by
+  # default. Our auth middleware returns 401 (not a 302 redirect) for JSON-like
+  # requests when the user is unauthenticated, so `/` always responds 401 to
+  # the scanner. The app is healthy — we just teach the scanner that 401 is an
+  # acceptable response code so `lando start` reports a clean URL list.
+  appserver_nginx:
+    scanner:
+      okCodes:
+        - 200
+        - 301
+        - 302
+        - 401
+
+  # PHP appserver — extend the recipe's appserver to install extra extensions,
+  # set environment variables, and run post-start automation.
+  appserver:
+    overrides:
+      environment:
+        APP_ENV: local
+        APP_DEBUG: 'true'
+        APP_URL: https://frost.lndo.site
+        LOG_CHANNEL: stack
+        DB_CONNECTION: mysql
+        DB_HOST: database
+        DB_PORT: '3306'
+        DB_DATABASE: laravel
+        DB_USERNAME: laravel
+        DB_PASSWORD: laravel
+        CACHE_DRIVER: redis
+        CACHE_STORE: redis
+        SESSION_DRIVER: redis
+        QUEUE_CONNECTION: redis
+        REDIS_HOST: cache
+        REDIS_PORT: '6379'
+        MAIL_MAILER: smtp
+        MAIL_HOST: mailpit
+        MAIL_PORT: '1025'
+        MAIL_FROM_ADDRESS: support@frost.lndo.site
+        MAIL_FROM_NAME: Frost
+    build_as_root:
+      - apt-get update
+      - apt-get install -y --no-install-recommends libicu-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev
+      - docker-php-ext-configure gd --with-freetype --with-jpeg
+      - docker-php-ext-install -j$(nproc) intl bcmath pcntl gd
+
+  # Redis cache (named 'cache' so it doesn't collide with the appserver)
+  cache:
+    type: redis:7
+    persist: true
+
+  # Mailpit for capturing outbound mail in dev
+  mailpit:
+    type: compose
+    services:
+      image: axllent/mailpit:latest
+      command: /mailpit
+      ports:
+        - '1025'
+        - '8025'
+
+# ─── Proxy: route a friendly HTTPS hostname to each service ──────────────────
+# Lando's proxy auto-issues a cert from the Lando CA. Trust the CA once with
+# `lando ca-cert` (or import ~/.lando/certs/lndo.site.pem) and the cert chain
+# will validate cleanly in your browser.
+proxy:
+  appserver_nginx:
+    - frost.lndo.site
+  mailpit:
+    - mail.frost.lndo.site:8025
+
+# ─── Tooling: shortcut commands you can run from the host ───────────────────
+tooling:
+  artisan:
+    service: appserver
+    cmd: php artisan
+    description: Run an artisan command inside the appserver
+  composer:
+    service: appserver
+    cmd: composer
+    description: Run composer inside the appserver
+  npm:
+    service: appserver
+    cmd: npm
+    description: Run npm inside the appserver
+  node:
+    service: appserver
+    cmd: node
+    description: Run node inside the appserver
+  test:
+    service: appserver
+    cmd: php artisan test --compact
+    description: Run the PHPUnit test suite
+  build:
+    service: appserver
+    cmd: npm run build
+    description: Recompile frontend assets via vite (npm run build)
+  migrate:
+    service: appserver
+    cmd: php artisan migrate --force --no-interaction
+    description: Run database migrations
+  seed:
+    service: appserver
+    cmd: php artisan db:seed --force --no-interaction
+    description: Seed the database with the full Faker dataset
+  fresh:
+    service: appserver
+    cmd: php artisan migrate:fresh --seed --force --no-interaction
+    description: Drop everything and re-seed from scratch
+  mysql:
+    service: database
+    cmd: mysql -ularavel -plaravel laravel
+    description: Open a mysql shell against the dev database
+
+# ─── Events: automate first-run + post-start setup ───────────────────────────
+events:
+  post-start:
+    - appserver: |
+        set -e
+        cd /app
+        if [ ! -f .env ]; then
+          echo ">> Bootstrapping .env from .env.example"
+          cp .env.example .env
+        fi
+        if ! grep -q '^APP_KEY=base64:' .env; then
+          echo ">> Generating APP_KEY"
+          php artisan key:generate --force --no-interaction
+        fi
+        if [ ! -d vendor ]; then
+          echo ">> Installing composer dependencies"
+          composer install --no-interaction --prefer-dist
+        fi
+        echo ">> Installing npm dependencies (idempotent)"
+        npm install --no-audit --no-fund
+        echo ">> Building frontend assets (vite)"
+        npm run build
+        echo ">> Running migrations"
+        php artisan migrate --force --no-interaction
+        echo ">> Seeding database (full Faker dataset)"
+        php artisan db:seed --force --no-interaction
+        echo ">> Frost is ready: https://frost.lndo.site"

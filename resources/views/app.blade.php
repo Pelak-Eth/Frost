@@ -10,7 +10,7 @@
         <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
         <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
 
-        @vite(['resources/js/app.js', 'resources/css/app.scss'])
+        @vite(['resources/js/app.js', 'resources/css/app.css'])
         @inertiaHead
     </head>
     <body>

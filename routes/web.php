@@ -90,7 +90,9 @@ Route::group(array('prefix' => 'admin', 'namespace' => 'Admin', 'middleware' => 
     Route::post('store/inventory/create', 'Store\InventoryController@process');
 
     Route::get('store/report/sales', 'Store\ReportController@sales');
+    Route::get('store/report/sales/export', 'Store\ReportController@exportSales');
     Route::get('store/report/inventory', 'Store\ReportController@inventory');
+    Route::get('store/report/inventory/export', 'Store\ReportController@exportInventory');
 
     Route::get('store/touch', 'Store\TouchController@touch');
     Route::get('store/touch/get-liquids', 'Store\TouchController@getLiquids');

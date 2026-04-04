@@ -42,7 +42,8 @@
                     <div class="row">
                         <div class="col-lg-8 col-lg-offset-2">
                             <h4>Content</h4>
-                            <textarea id="content" name="content" style="height:280px">{{ $announcement->content }}</textarea>
+                            <input type="hidden" name="content" id="content" value="{{ old('content', $announcement->content) }}">
+                            <div data-quill data-quill-target="content" data-quill-toolbar="full" style="height:280px"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -59,8 +60,5 @@
 @endsection
 
 @push('scripts')
-<script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
-<script>
-    tinymce.init({ selector:'textarea' });
-</script>
+    @vite('resources/js/quill.js')
 @endpush

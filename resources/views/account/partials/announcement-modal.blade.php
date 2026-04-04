@@ -20,7 +20,8 @@
                 <div class="row">
                     <div class="col-md-6 col-md-offset-3 well">
                         <input id="announcement-id" type="hidden" value="" />
-                        <textarea class="" rows="4" id="reply"></textarea>
+                        <input type="hidden" id="reply">
+                        <div data-quill data-quill-target="reply" data-quill-toolbar="compact" style="height:160px"></div>
                         <button id="post-reply" class="btn btn-block btn-raised btn-info">Add Comment</button>
                     </div>
                 </div>

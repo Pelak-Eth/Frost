@@ -1,6 +1,12 @@
 #!/bin/sh
 set -e
 
+# Ensure a .env exists so artisan commands that read it don't choke
+if [ ! -f .env ] && [ -f .env.example ]; then
+    echo ">> Bootstrapping .env from .env.example"
+    cp .env.example .env
+fi
+
 # Generate app key if missing
 if [ -z "$APP_KEY" ] && ! grep -q '^APP_KEY=base64:' .env 2>/dev/null; then
     echo ">> Generating APP_KEY"
